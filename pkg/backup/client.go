@@ -298,12 +298,12 @@ func BuildBackupRangeAndSchema(
 
 			// remove all non-public indices
 			n := 0
-			for _, index := range tableInfo.Indices {
-				if index.State == model.StatePublic {
-					tableInfo.Indices[n] = index
-					n++
-				}
-			}
+			//for _, index := range tableInfo.Indices {
+			//	if index.State == model.StatePublic {
+			//		tableInfo.Indices[n] = index
+			//		n++
+			//	}
+			//}
 			tableInfo.Indices = tableInfo.Indices[:n]
 
 			if dbData == nil {
