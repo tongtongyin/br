@@ -220,17 +220,17 @@ func BuildTableRanges(tbl *model.TableInfo) ([]kv.KeyRange, error) {
 func appendRanges(tbl *model.TableInfo, tblID int64) ([]kv.KeyRange, error) {
 	ranges := ranger.FullIntRange(false)
 	kvRanges := distsql.TableRangesToKVRanges(tblID, ranges, nil)
-	for _, index := range tbl.Indices {
-		if index.State != model.StatePublic {
-			continue
-		}
-		ranges = ranger.FullRange()
-		idxRanges, err := distsql.IndexRangesToKVRanges(nil, tblID, index.ID, ranges, nil)
-		if err != nil {
-			return nil, errors.Trace(err)
-		}
-		kvRanges = append(kvRanges, idxRanges...)
-	}
+	//for _, index := range tbl.Indices {
+	//	if index.State != model.StatePublic {
+	//		continue
+	//	}
+	//	ranges = ranger.FullRange()
+	//	idxRanges, err := distsql.IndexRangesToKVRanges(nil, tblID, index.ID, ranges, nil)
+	//	if err != nil {
+	//		return nil, errors.Trace(err)
+	//	}
+	//	kvRanges = append(kvRanges, idxRanges...)
+	//}
 	return kvRanges, nil
 }
 
@@ -298,12 +298,12 @@ func BuildBackupRangeAndSchema(
 
 			// remove all non-public indices
 			n := 0
-			//for _, index := range tableInfo.Indices {
-			//	if index.State == model.StatePublic {
-			//		tableInfo.Indices[n] = index
-			//		n++
-			//	}
-			//}
+			for _, index := range tableInfo.Indices {
+				if index.State == model.StatePublic {
+					tableInfo.Indices[n] = index
+					n++
+				}
+			}
 			tableInfo.Indices = tableInfo.Indices[:n]
 
 			if dbData == nil {
