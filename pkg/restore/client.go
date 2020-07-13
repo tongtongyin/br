@@ -76,9 +76,10 @@ type Client struct {
 	// Those fields should be removed after we have FULLY supportted TiFlash.
 	tablesRemovedTiFlash []*backup.Schema
 
-	storage  storage.ExternalStorage
-	backend  *backup.StorageBackend
-	switchCh chan struct{}
+	storage            storage.ExternalStorage
+	backend            *backup.StorageBackend
+	switchModeInterval time.Duration
+	switchCh           chan struct{}
 }
 
 // NewRestoreClient returns a new RestoreClient.
@@ -131,6 +132,11 @@ func (rc *Client) GetPDClient() pd.Client {
 // IsOnline tells if it's a online restore.
 func (rc *Client) IsOnline() bool {
 	return rc.isOnline
+}
+
+// SetInterval set switch mode interval for client.
+func (rc *Client) SetInterval(interval time.Duration) {
+	rc.switchModeInterval = interval
 }
 
 // Close a client.
@@ -680,9 +686,9 @@ func (rc *Client) RestoreRaw(startKey []byte, endKey []byte, files []*backup.Fil
 // SwitchToImportMode switch tikv cluster to import mode.
 func (rc *Client) SwitchToImportMode(ctx context.Context) {
 	// tikv automatically switch to normal mode in every 10 minutes
-	// so we need ping tikv in every 5 minutes
+	// so we need ping tikv in less than 10 minute
 	go func() {
-		tick := time.NewTicker(5 * time.Minute)
+		tick := time.NewTicker(rc.switchModeInterval)
 
 		for {
 			select {
