@@ -10,9 +10,12 @@ import (
 	"time"
 
 	"github.com/cheggaaa/pb/v3"
+	"github.com/pingcap/errors"
 	"github.com/pingcap/log"
 	"go.uber.org/zap"
 )
+
+type logFunc func(msg string, fields ...zap.Field)
 
 // ProgressPrinter prints a progress bar.
 type ProgressPrinter struct {
@@ -53,6 +56,7 @@ func (pp *ProgressPrinter) Close() {
 // goPrintProgress starts a gorouinte and prints progress.
 func (pp *ProgressPrinter) goPrintProgress(
 	ctx context.Context,
+	logFuncImpl logFunc,
 	testWriter io.Writer, // Only for tests
 ) {
 	cctx, cancel := context.WithCancel(ctx)
@@ -67,7 +71,10 @@ func (pp *ProgressPrinter) goPrintProgress(
 		bar.Set(pb.Terminal, false)     // Do not use terminal width
 		// Hack! set Color to avoid separate progress string
 		bar.Set(pb.Color, true)
-		bar.SetWriter(&wrappedWriter{name: pp.name})
+		if logFuncImpl == nil {
+			logFuncImpl = log.Info
+		}
+		bar.SetWriter(&wrappedWriter{name: pp.name, log: logFuncImpl})
 	} else {
 		tmpl := `{{string . "barName" | green}} {{ bar . "<" "-" (cycle . "-" "\\" "|" "/" ) "." ">"}} {{percent .}}`
 		bar.SetTemplateString(tmpl)
@@ -110,6 +117,7 @@ func (pp *ProgressPrinter) goPrintProgress(
 
 type wrappedWriter struct {
 	name string
+	log  logFunc
 }
 
 func (ww *wrappedWriter) Write(p []byte) (int, error) {
@@ -121,9 +129,9 @@ func (ww *wrappedWriter) Write(p []byte) (int, error) {
 		S string
 	}
 	if err := json.Unmarshal(p, &info); err != nil {
-		return 0, err
+		return 0, errors.Trace(err)
 	}
-	log.Info("progress",
+	ww.log("progress",
 		zap.String("step", ww.name),
 		zap.String("progress", info.P),
 		zap.String("count", info.C),
@@ -139,8 +147,9 @@ func StartProgress(
 	name string,
 	total int64,
 	redirectLog bool,
+	log logFunc,
 ) *ProgressPrinter {
 	progress := NewProgressPrinter(name, total, redirectLog)
-	progress.goPrintProgress(ctx, nil)
+	progress.goPrintProgress(ctx, log, nil)
 	return progress
 }
