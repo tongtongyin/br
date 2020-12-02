@@ -3,7 +3,7 @@ package task
 import (
 	"testing"
 	"time"
-
+	kvproto "github.com/pingcap/kvproto/pkg/backup"
 	. "github.com/pingcap/check"
 )
 
