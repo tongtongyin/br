@@ -55,5 +55,4 @@ func (s *testBackupSuite) TestParseCompressionType(c *C) {
 	ct, err = parseCompressionType("Other Compression (strings)")
 	c.Assert(err, ErrorMatches, "invalid compression.*")
 	c.Assert(int(ct), Equals, 0)
-
 }
