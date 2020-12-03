@@ -4,6 +4,7 @@ package utils
 
 import (
 	"encoding/hex"
+	
 	. "github.com/pingcap/check"
 )
 
@@ -12,7 +13,7 @@ type testKeySuite struct{}
 var _ = Suite(&testKeySuite{})
 
 func (r *testKeySuite) TestParseKey(c *C) {
-
+	// test rawKey
 	testRawKey := []struct {
 		rawKey string
 		ans []byte
@@ -30,7 +31,8 @@ func (r *testKeySuite) TestParseKey(c *C) {
 		c.Assert(err, IsNil)
 		c.Assert(parsedKey, BytesEquals, tt.ans)
 	}
-
+	
+	// test EscapedKey
 	testEscapedKey := []struct {
 		EscapedKey string
 		ans []byte
@@ -47,7 +49,8 @@ func (r *testKeySuite) TestParseKey(c *C) {
 		c.Assert(err, IsNil)
 		c.Assert(parsedKey, BytesEquals, tt.ans)
 	}
-
+	
+	// test hexKey
 	testHexKey := []struct {
 		hexKey string
 		ans []byte
@@ -68,7 +71,8 @@ func (r *testKeySuite) TestParseKey(c *C) {
 		c.Assert(err, IsNil)
 		c.Assert(parsedKey, BytesEquals, tt.ans)
 	}
-
+	
+	// test other
 	testNotSupportKey := []struct {
 		any string
 		ans []byte
@@ -90,21 +94,22 @@ func (r *testKeySuite) TestParseKey(c *C) {
 }
 
 func (r *testKeySuite) TestCompareEndKey(c *C) {
-	res := CompareEndKey([]byte("1"), []byte("2"))
-	c.Assert(res, Less, 0)
+	// test endKey
+	testCase := []struct {
+		key1 []byte
+		key2 []byte
+		ans  int
+	}{
+		{[]byte("1"), []byte("2"), -1},
+		{[]byte("1"), []byte("1"), 0},
+		{[]byte("2"), []byte("1"), 1},
+		{[]byte("1"), []byte(""), -1},
+		{[]byte(""), []byte(""), 0},
+		{[]byte(""), []byte("1"), 1},
+	}
 
-	res = CompareEndKey([]byte("1"), []byte("1"))
-	c.Assert(res, Equals, 0)
-
-	res = CompareEndKey([]byte("2"), []byte("1"))
-	c.Assert(res, Greater, 0)
-
-	res = CompareEndKey([]byte("1"), []byte(""))
-	c.Assert(res, Less, 0)
-
-	res = CompareEndKey([]byte(""), []byte(""))
-	c.Assert(res, Equals, 0)
-
-	res = CompareEndKey([]byte(""), []byte("1"))
-	c.Assert(res, Greater, 0)
+	for _, tt := range testCase {
+		res := CompareEndKey(tt.key1, tt.key2)
+		c.Assert(res, Equals, tt.ans)
+	}
 }
