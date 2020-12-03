@@ -12,10 +12,6 @@ type testKeySuite struct{}
 var _ = Suite(&testKeySuite{})
 
 func (r *testKeySuite) TestParseKey(c *C) {
-	//rawKey := "1234"
-	//parsedKey, err := ParseKey("raw", rawKey)
-	//c.Assert(err, IsNil)
-	//c.Assert(parsedKey, BytesEquals, []byte(rawKey))
 
 	testRawKey := []struct {
 		rawKey string
@@ -51,16 +47,6 @@ func (r *testKeySuite) TestParseKey(c *C) {
 		c.Assert(err, IsNil)
 		c.Assert(parsedKey, BytesEquals, tt.ans)
 	}
-
-	//escapedKey := "\\a\\x1"
-	//parsedKey, err = ParseKey("escaped", escapedKey)
-	//c.Assert(err, IsNil)
-	//c.Assert(parsedKey, BytesEquals, []byte("\a\x01"))
-
-	//hexKey := hex.EncodeToString([]byte("1234"))
-	//parsedKey, err = ParseKey("hex", hexKey)
-	//c.Assert(err, IsNil)
-	//c.Assert(parsedKey, BytesEquals, []byte("1234"))
 
 	testHexKey := []struct {
 		hexKey string
